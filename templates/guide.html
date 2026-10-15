@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}利用ガイド{% endblock %}
+{% block content %}
+<nav class="crumb" aria-label="パンくず">
+  <a href="{{ url_for('main.index') }}">募集一覧</a>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">利用ガイド</span>
+</nav>
+<h1>利用ガイド</h1>
+<p class="lead-text">ログイン不要の、関東向け練習試合相手・助っ人募集掲示板です。</p>
+
+<section class="guide-section form-section">
+  <h2>探し方</h2>
+  <ul class="guide-list">
+    <li>募集中／終了、対戦相手（グラウンドあり・なし）、助っ人、土日祝だけで絞り込めます。</li>
+    <li>都道府県・詳細エリア・レベル・キーワードでも探せます。</li>
+    <li>上部の日付レールで、直近2週間の試合日ごとに件数を見られます。</li>
+  </ul>
+</section>
+
+<section class="guide-section form-section">
+  <h2>投稿のしかた</h2>
+  <ul class="guide-list">
+    <li>「募集を投稿」から、日付・時間帯・エリア・連絡先メールを入れて投稿します。</li>
+    <li>編集・募集終了・削除用の暗証番号を、投稿時に自分で決めます。忘れると操作できません。</li>
+    <li>同じ日・同じエリア・同じタイプの募集中があると、重複確認が表示されます。内容を見てから投稿してください。</li>
+    <li>試合日を過ぎた募集は、自動で「募集終了」になります。</li>
+  </ul>
+</section>
+
+<section class="guide-section form-section">
+  <h2>連絡とプライバシー</h2>
+  <ul class="guide-list">
+    <li>メールアドレスはページにそのまま出しません。「メールで連絡する」から開きます。</li>
+    <li>相手への連絡は、各自の判断と責任で行ってください。</li>
+    <li>不審な投稿は、詳細ページの「通報する」から理由を送れます。</li>
+  </ul>
+</section>
+
+<section class="guide-section form-section">
+  <h2>やってほしくないこと</h2>
+  <ul class="guide-list">
+    <li>同じ内容の連投や、関係のない宣伝。</li>
+    <li>詐欺まがいのやり取りや、他人の個人情報の書き込み。</li>
+    <li>相手が見つかったあとも募集中のまま放置すること（見つかったら募集終了にしてください）。</li>
+  </ul>
+</section>
+
+<p class="fine-print"><a href="{{ url_for('main.create_post') }}">募集を投稿する</a> · <a href="{{ url_for('main.index') }}">一覧に戻る</a></p>
+{% endblock %}

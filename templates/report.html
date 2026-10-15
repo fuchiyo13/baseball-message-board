@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}通報{% endblock %}
+{% block content %}
+<nav class="crumb" aria-label="パンくず">
+  <a href="{{ url_for('main.index') }}">募集一覧</a>
+  <span aria-hidden="true">/</span>
+  <a href="{{ url_for('main.post_detail', post_id=post.id) }}">{{ post.card_title }}</a>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">通報</span>
+</nav>
+<h1>この募集を通報</h1>
+<p class="lead-text">「{{ post.card_title }}」（{{ post.date_label }} · {{ post.area_label }}）について、理由を選んで送信してください。</p>
+{% include "partials/errors.html" %}
+<form method="post" action="{{ url_for('main.report_post', post_id=post.id) }}" class="post-form">
+  {% include "partials/csrf.html" %}
+  <fieldset class="form-section">
+    <legend>理由 <span class="req" aria-hidden="true">必須</span></legend>
+    <div class="type-picker">
+      {% for code, label in report_reasons %}
+      <label class="type-option">
+        <input type="radio" name="reason" value="{{ code }}" {% if reason == code %}checked{% endif %} required>
+        <span class="type-option-text">
+          <span class="type-option-title">{{ label }}</span>
+        </span>
+      </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+  <fieldset class="form-section">
+    <legend>補足（任意）</legend>
+    <label class="form-label" for="comment">詳しく</label>
+    <textarea class="form-control" id="comment" name="comment" rows="4" maxlength="400" placeholder="分かる範囲で教えてください">{{ comment }}</textarea>
+  </fieldset>
+  <button class="btn btn-primary btn-lg w-100" type="submit">通報を送る</button>
+</form>
+<p class="fine-print"><a href="{{ url_for('main.post_detail', post_id=post.id) }}">詳細に戻る</a></p>
+{% endblock %}

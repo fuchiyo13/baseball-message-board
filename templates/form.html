@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}募集を投稿{% endblock %}
+{% block affiliate_footer %}{% endblock %}
+{% block content %}
+<nav class="crumb" aria-label="パンくず">
+  <a href="{{ url_for('main.index') }}">募集一覧</a>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">投稿</span>
+</nav>
+<h1>募集を投稿</h1>
+<p class="lead-text">ログインは不要です。編集と削除には、ここで決める暗証番号を使います。<a href="{{ url_for('main.guide') }}">利用ガイド</a></p>
+{% include "partials/errors.html" %}
+{% if similar_posts %}
+<section class="similar-box" role="status">
+  <h2>似た募集がすでにあります</h2>
+  <p class="field-help">同じ日・同じエリア・同じタイプの募集中です。内容を確認してから投稿してください。</p>
+  <ul class="match-list">
+    {% for item in similar_posts %}
+    <li>
+      <a href="{{ url_for('main.post_detail', post_id=item.id) }}" target="_blank" rel="noopener noreferrer">
+        <span>{{ item.card_title }}</span>
+        <small>{{ item.date_label }} · {{ item.time_label }} · {{ item.area_label }}{% if item.fit_label %} · {{ item.fit_label }}{% endif %}</small>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+<form method="post" action="{{ url_for('main.create_post') }}" class="post-form">
+  {% include "partials/csrf.html" %}
+  {% include "partials/post_fields.html" %}
+  <fieldset class="form-section">
+    <legend>削除・編集用の暗証番号 <span class="req" aria-hidden="true">必須</span></legend>
+    <p class="field-help" id="password-help">募集終了・編集・削除のときに入力します。忘れると、あとから操作できません。</p>
+    <div class="mb-3">
+      <label class="form-label" for="password">暗証番号</label>
+      <input class="form-control" type="password" id="password" name="password" required minlength="4" maxlength="64" autocomplete="new-password" aria-describedby="password-help" value="{{ form.password }}">
+    </div>
+    <div>
+      <label class="form-label" for="password_confirm">暗証番号（確認）</label>
+      <input class="form-control" type="password" id="password_confirm" name="password_confirm" required minlength="4" maxlength="64" autocomplete="new-password" value="{{ form.password_confirm }}">
+    </div>
+  </fieldset>
+  {% if similar_posts %}
+  <div class="similar-confirm form-section">
+    <label class="confirm-check">
+      <input type="checkbox" name="confirm_similar" value="1" required>
+      <span>似た募集を確認したうえで、この内容で投稿します</span>
+    </label>
+  </div>
+  {% endif %}
+  <button class="btn btn-primary btn-lg w-100" type="submit">{% if similar_posts %}確認して投稿する{% else %}投稿する{% endif %}</button>
+</form>
+{% include "partials/affiliate_xebio.html" %}
+{% endblock %}
+

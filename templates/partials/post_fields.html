@@ -1,0 +1,145 @@
+<fieldset class="form-section">
+  <legend>募集タイプ <span class="req" aria-hidden="true">必須</span></legend>
+  <div class="type-picker">
+    <div class="opponent-box type-opponent" role="group" aria-labelledby="opponent-type-label">
+      <span class="opponent-box-label" id="opponent-type-label">対戦相手</span>
+      <div class="type-opponent-options">
+        {% for item in post_types if item.code != 'helper' %}
+        <label class="type-option">
+          <input type="radio" name="post_type" value="{{ item.code }}" {% if form.post_type == item.code %}checked{% endif %} required>
+          <span class="type-option-text">
+            <span class="type-option-title">{{ item.short }}</span>
+            <span class="type-option-desc">{{ item.description }}</span>
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+    {% for item in post_types if item.code == 'helper' %}
+    <label class="type-option">
+      <input type="radio" name="post_type" value="{{ item.code }}" {% if form.post_type == item.code %}checked{% endif %} required>
+      <span class="type-option-text">
+        <span class="type-option-title">{{ item.short }}</span>
+        <span class="type-option-desc">{{ item.description }}</span>
+      </span>
+    </label>
+    {% endfor %}
+  </div>
+</fieldset>
+
+<fieldset class="form-section">
+  <legend>日時 <span class="req" aria-hidden="true">必須</span></legend>
+  <div class="row g-2">
+    <div class="col-7 col-sm-6">
+      <label class="form-label" for="event_date">試合日</label>
+      <input class="form-control" type="date" id="event_date" name="event_date" required
+        {% if date_min is defined and date_min %}min="{{ date_min }}"{% endif %}
+        max="{{ max_date }}" value="{{ form.event_date }}">
+    </div>
+    <div class="col-5 col-sm-6">
+      <span class="form-label" id="weekday-label">曜日</span>
+      <p class="weekday-box" id="weekday-preview" aria-labelledby="weekday-label">{{ form.event_date|weekday_of }}</p>
+    </div>
+  </div>
+  <p class="field-help">曜日は試合日から自動で表示します。</p>
+  <div class="mt-3">
+    <label class="form-label" for="time_slot">時間帯</label>
+    <select class="form-select" id="time_slot" name="time_slot" required>
+      {% for code, label in time_slots %}
+      <option value="{{ code }}" {% if form.time_slot == code %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="row g-2 mt-1" id="custom-time">
+    <div class="col-6">
+      <label class="form-label" for="time_start">開始時刻</label>
+      <input class="form-control" type="time" id="time_start" name="time_start" value="{{ form.time_start }}">
+    </div>
+    <div class="col-6">
+      <label class="form-label" for="time_end">終了時刻</label>
+      <input class="form-control" type="time" id="time_end" name="time_end" value="{{ form.time_end }}">
+    </div>
+    <div class="col-12">
+      <p class="field-help mb-0">時間帯で「時間を指定」を選んだときだけ使います。</p>
+    </div>
+  </div>
+</fieldset>
+
+<fieldset class="form-section">
+  <legend>場所 <span class="req" aria-hidden="true">必須</span></legend>
+  <label class="form-label" for="post_area">エリア（関東）</label>
+  <select class="form-select" id="post_area" name="area" required>
+    <option value="" {% if not form.area %}selected{% endif %}>選択してください</option>
+    {% for group in grouped_areas %}
+    <optgroup label="{{ group.label }}">
+      {% for item in group.areas %}
+      <option value="{{ item.code }}" {% if form.area == item.code %}selected{% endif %}>{{ item.option }}</option>
+      {% endfor %}
+    </optgroup>
+    {% endfor %}
+  </select>
+  <div class="mt-3">
+    <label class="form-label" for="place_detail">グラウンド名・集合場所（任意）</label>
+    <input class="form-control" type="text" id="place_detail" name="place_detail" maxlength="120" value="{{ form.place_detail }}" placeholder="例: ○○市民グラウンド A面">
+  </div>
+</fieldset>
+
+<fieldset class="form-section">
+  <legend>チームと連絡先</legend>
+  <div class="row g-2">
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="team_name">チーム名（任意）</label>
+      <input class="form-control" type="text" id="team_name" name="team_name" maxlength="80" value="{{ form.team_name }}" placeholder="例: 江戸川リバーズ">
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="recruiter_name">募集者名（任意）</label>
+      <input class="form-control" type="text" id="recruiter_name" name="recruiter_name" maxlength="40" value="{{ form.recruiter_name }}">
+    </div>
+  </div>
+  <div class="row g-2 mt-3">
+    <div class="col-12">
+      <label class="form-label" for="email">連絡先メールアドレス <span class="req" aria-hidden="true">必須</span></label>
+      <input class="form-control" type="email" id="email" name="email" required maxlength="120" autocomplete="email" value="{{ form.email }}" placeholder="name@example.com">
+    </div>
+  </div>
+  <p class="field-help">一覧には出しません。詳細ページの「メールで連絡する」から開きます。</p>
+</fieldset>
+
+<fieldset class="form-section">
+  <legend>相手探しの目安（任意）</legend>
+  <div class="row g-2">
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="level">レベル</label>
+      <select class="form-select" id="level" name="level">
+        <option value="" {% if not form.level %}selected{% endif %}>指定しない</option>
+        {% for code, label in levels %}
+        <option value="{{ code }}" {% if form.level == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="headcount">人数の目安</label>
+      <input class="form-control" type="text" id="headcount" name="headcount" maxlength="40" value="{{ form.headcount }}" placeholder="例: 12〜15人、あと2人">
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="positions">欲しいポジション</label>
+      <input class="form-control" type="text" id="positions" name="positions" maxlength="80" value="{{ form.positions }}" placeholder="例: 投手、捕手">
+    </div>
+  </div>
+</fieldset>
+
+<fieldset class="form-section">
+  <legend>詳細（任意）</legend>
+  <div class="mb-3">
+    <label class="form-label" for="fee">参加費</label>
+    <input class="form-control" type="text" id="fee" name="fee" maxlength="80" value="{{ form.fee }}" placeholder="例: 1人500円、無料、グラウンド代割り勘">
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="belongings">持ち物</label>
+    <textarea class="form-control" id="belongings" name="belongings" maxlength="500" rows="3" placeholder="例: グローブ、ユニフォーム、スパイク">{{ form.belongings }}</textarea>
+  </div>
+  <div>
+    <label class="form-label" for="notes">その他の留意事項</label>
+    <textarea class="form-control" id="notes" name="notes" maxlength="2000" rows="5" placeholder="集合時間、レベル感、欲しいポジション、雨天時の連絡など">{{ form.notes }}</textarea>
+  </div>
+</fieldset>

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}投稿の管理{% endblock %}
+{% block content %}
+<nav class="crumb" aria-label="パンくず">
+  <a href="{{ url_for('main.index') }}">募集一覧</a>
+  <span aria-hidden="true">/</span>
+  <a href="{{ url_for('main.post_detail', post_id=post.id) }}">詳細</a>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">管理</span>
+</nav>
+<h1>投稿の管理</h1>
+
+<section class="summary-card">
+  <div class="post-tags">
+    {% include "partials/type_badge.html" %}
+    <span class="badge badge-status badge-{{ post.status }}">{{ post.status_label }}</span>
+  </div>
+  <p class="summary-title">{{ post.card_title }}</p>
+  <p class="summary-meta">{{ post.date_label }} {{ post.time_label }} · {{ post.area_label }}</p>
+</section>
+
+{% if not unlocked %}
+<form method="post" class="form-section unlock-form">
+  {% include "partials/csrf.html" %}
+  <input type="hidden" name="action" value="unlock">
+  <label class="form-label" for="password">暗証番号</label>
+  <p class="field-help" id="unlock-help">投稿したときに設定した暗証番号です。</p>
+  <input class="form-control" type="password" id="password" name="password" required maxlength="64" autocomplete="current-password" aria-describedby="unlock-help" autofocus>
+  <button class="btn btn-primary w-100 mt-3" type="submit">確認する</button>
+</form>
+{% else %}
+{% include "partials/errors.html" %}
+<form method="post" class="post-form">
+  {% include "partials/csrf.html" %}
+  <input type="hidden" name="action" value="update">
+  {% include "partials/post_fields.html" %}
+  <fieldset class="form-section">
+    <legend>暗証番号の変更（任意）</legend>
+    <p class="field-help">空欄のまま保存すると、暗証番号は変わりません。</p>
+    <div class="mb-3">
+      <label class="form-label" for="new_password">新しい暗証番号</label>
+      <input class="form-control" type="password" id="new_password" name="new_password" minlength="4" maxlength="64" autocomplete="new-password">
+    </div>
+    <div>
+      <label class="form-label" for="new_password_confirm">新しい暗証番号（確認）</label>
+      <input class="form-control" type="password" id="new_password_confirm" name="new_password_confirm" minlength="4" maxlength="64" autocomplete="new-password">
+    </div>
+  </fieldset>
+  <button class="btn btn-primary btn-lg w-100" type="submit">変更を保存</button>
+</form>
+
+<section class="danger-zone" aria-label="募集の状態と削除">
+  <h2>募集の状態</h2>
+  {% if post.status == 'open' %}
+  <form method="post">
+    {% include "partials/csrf.html" %}
+    <input type="hidden" name="action" value="close">
+    <button class="btn btn-outline-primary w-100" type="submit">募集を終了する</button>
+  </form>
+  {% elif post.event_date >= today %}
+  <form method="post">
+    {% include "partials/csrf.html" %}
+    <input type="hidden" name="action" value="reopen">
+    <button class="btn btn-outline-primary w-100" type="submit">募集中に戻す</button>
+  </form>
+  {% else %}
+  <p class="field-help">試合日を過ぎているため、募集中には戻せません。試合日を今日以降に変更して保存したあとで戻せます。</p>
+  {% endif %}
+  <form method="post" data-confirm="この投稿を削除します。元に戻せません。">
+    {% include "partials/csrf.html" %}
+    <input type="hidden" name="action" value="delete">
+    <button class="btn btn-outline-danger w-100" type="submit">投稿を削除する</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}{{ heading }}{% endblock %}
+{% block affiliate_footer %}{% endblock %}
+{% block content %}
+<div class="list-head">
+  <div>
+    <h1>{{ heading }}</h1>
+    <p class="lead-text">日付とキーワードで、練習試合の相手と助っ人を探せます。</p>
+  </div>
+  <p class="count"><span>{{ page.total }}</span>件</p>
+</div>
+
+{% if date_rail %}
+<div class="date-rail" aria-label="日付">
+  <a class="date-pill {% if not on %}is-active{% endif %}" href="{{ build_url(on='') }}">
+    <span class="date-w">日付</span>
+    <strong>すべて</strong>
+    <span class="date-count">{% if not on %}表示中{% else %}解除{% endif %}</span>
+  </a>
+  {% for day in date_rail %}
+  <a class="date-pill {% if on == day.iso %}is-active{% endif %} {% if day.is_today %}is-today{% endif %} {% if day.dow == 5 %}is-sat{% elif day.dow == 6 %}is-sun{% endif %}" href="{{ build_url(on=day.iso) }}">
+    <span class="date-w">{{ day.weekday }}{% if day.is_today %}・今日{% endif %}</span>
+    <strong>{{ day.md }}</strong>
+    <span class="date-count">{% if day.count %}{{ day.count }}件{% else %}—{% endif %}</span>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<section class="filter-card" aria-label="絞り込みと並び順">
+  <div class="chip-row">
+    <div class="chip-group" aria-label="状態">
+      <a class="chip {% if status == 'open' %}is-active{% endif %}" href="{{ build_url(status='open') }}">募集中{% if status == 'open' %}<span class="visually-hidden">、選択中</span>{% endif %}</a>
+      <a class="chip {% if status == 'closed' %}is-active{% endif %}" href="{{ build_url(status='closed') }}">募集終了{% if status == 'closed' %}<span class="visually-hidden">、選択中</span>{% endif %}</a>
+      <a class="chip {% if status == 'all' %}is-active{% endif %}" href="{{ build_url(status='all') }}">すべて{% if status == 'all' %}<span class="visually-hidden">、選択中</span>{% endif %}</a>
+    </div>
+    <div class="chip-group" aria-label="募集タイプ">
+      <a class="chip {% if not post_type %}is-active{% endif %}" href="{{ build_url(post_type='') }}">タイプすべて{% if not post_type %}<span class="visually-hidden">、選択中</span>{% endif %}</a>
+      <div class="opponent-box" role="group" aria-labelledby="opponent-filter-label">
+        <span class="opponent-box-label" id="opponent-filter-label">対戦相手</span>
+        {% for item in post_types if item.code != 'helper' %}
+        <a class="chip {% if post_type == item.code %}is-active{% endif %}" href="{{ build_url(post_type=item.code) }}">{{ item.short }}{% if post_type == item.code %}<span class="visually-hidden">、選択中</span>{% endif %}</a>
+        {% endfor %}
+      </div>
+      {% for item in post_types if item.code == 'helper' %}
+      <a class="chip {% if post_type == item.code %}is-active{% endif %}" href="{{ build_url(post_type=item.code) }}">{{ item.short }}{% if post_type == item.code %}<span class="visually-hidden">、選択中</span>{% endif %}</a>
+      {% endfor %}
+    </div>
+    <div class="chip-group" aria-label="曜日">
+      <a class="chip {% if not weekend %}is-active{% endif %}" href="{{ build_url(weekend='') }}">曜日すべて{% if not weekend %}<span class="visually-hidden">、選択中</span>{% endif %}</a>
+      <a class="chip {% if weekend %}is-active{% endif %}" href="{{ build_url(weekend='1') }}">土日祝だけ{% if weekend %}<span class="visually-hidden">、選択中</span>{% endif %}</a>
+    </div>
+  </div>
+  <form method="get" action="{{ url_for('main.index') }}" class="filter-form" id="filter-form" data-remember-filters>
+    <input type="hidden" name="status" value="{{ status }}">
+    {% if post_type %}<input type="hidden" name="post_type" value="{{ post_type }}">{% endif %}
+    {% if on %}<input type="hidden" name="on" value="{{ on }}">{% endif %}
+    {% if weekend %}<input type="hidden" name="weekend" value="1">{% endif %}
+    <div class="row g-2 align-items-end">
+      <div class="col-12">
+        <label class="form-label" for="q">キーワード</label>
+        <input class="form-control" type="search" id="q" name="q" maxlength="40" value="{{ keyword }}" placeholder="チーム名・グラウンド・ポジション">
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label" for="prefecture">都道府県</label>
+        <select class="form-select" id="prefecture" name="prefecture">
+          <option value="" {% if not prefecture %}selected{% endif %}>すべて</option>
+          {% for code, label in prefectures %}
+          <option value="{{ code }}" {% if prefecture == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label" for="area">詳細エリア</label>
+        <select class="form-select" id="area" name="area">
+          <option value="" {% if not area %}selected{% endif %}>すべて</option>
+          {% for group in grouped_areas %}
+          <optgroup label="{{ group.label }}" data-pref="{{ group.code }}">
+            {% for item in group.areas %}
+            <option value="{{ item.code }}" {% if area == item.code %}selected{% endif %}>{{ item.option }}</option>
+            {% endfor %}
+          </optgroup>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label" for="level">レベル</label>
+        <select class="form-select" id="level" name="level">
+          <option value="" {% if not level %}selected{% endif %}>すべて</option>
+          {% for code, label in levels %}
+          <option value="{{ code }}" {% if level == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label" for="sort">並び順</label>
+        <select class="form-select" id="sort" name="sort">
+          {% for code, label in sorts %}
+          <option value="{{ code }}" {% if sort == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <button class="btn btn-primary filter-submit" type="submit">この条件で表示</button>
+      </div>
+    </div>
+  </form>
+</section>
+
+{% include "partials/affiliate_xebio.html" %}
+
+{% if posts %}
+<ul class="post-list">
+  {% for post in posts %}
+  <li>
+    <a class="post-card {% if post.status == 'closed' %}is-closed{% endif %}" href="{{ url_for('main.post_detail', post_id=post.id) }}">
+      <div class="post-date">
+        <span class="post-date-md">{{ post.event_date.month }}/{{ post.event_date.day }}</span>
+        <span class="post-date-w {% if post.event_date.weekday() == 5 %}is-sat{% elif post.event_date.weekday() == 6 %}is-sun{% endif %}">{{ post.weekday_label }}</span>
+        {% if post.event_date == today %}<span class="post-date-flag">今日</span>{% endif %}
+      </div>
+      <div class="post-main">
+        <div class="post-tags">
+          {% include "partials/type_badge.html" %}
+          <span class="badge badge-status badge-{{ post.status }}">{{ post.status_label }}</span>
+          {% if post.is_fresh %}<span class="badge badge-new">新着</span>{% endif %}
+        </div>
+        <p class="post-title">{{ post.card_title }}</p>
+        <p class="post-meta">{{ post.time_label }} · {{ post.area_label }}{% if post.place_detail %} · {{ post.place_detail }}{% endif %}</p>
+        {% if post.fit_label %}<p class="post-fit">{{ post.fit_label }}</p>{% endif %}
+        {% if post.updated_label %}<p class="post-updated">{{ post.updated_label }}</p>{% endif %}
+      </div>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% elif has_any %}
+<div class="empty-state">
+  <p>条件に合う投稿はありません。</p>
+  <a class="btn btn-outline-primary" href="{{ url_for('main.index') }}">条件をクリア</a>
+</div>
+{% else %}
+<div class="empty-state">
+  <p>まだ募集はありません。最初の投稿をしてみましょう。</p>
+  <a class="btn btn-primary" href="{{ url_for('main.create_post') }}">募集を投稿</a>
+</div>
+{% endif %}
+
+{% if page.pages > 1 %}
+<nav class="list-pager" aria-label="ページ">
+  <ul class="pagination mb-0">
+    <li class="page-item {% if not page.has_prev %}disabled{% endif %}">
+      {% if page.has_prev %}
+      <a class="page-link" href="{{ page_url(page.page - 1) }}">前へ</a>
+      {% else %}
+      <span class="page-link">前へ</span>
+      {% endif %}
+    </li>
+    <li class="page-item disabled"><span class="page-link">{{ page.page }} / {{ page.pages }}</span></li>
+    <li class="page-item {% if not page.has_next %}disabled{% endif %}">
+      {% if page.has_next %}
+      <a class="page-link" href="{{ page_url(page.page + 1) }}">次へ</a>
+      {% else %}
+      <span class="page-link">次へ</span>
+      {% endif %}
+    </li>
+  </ul>
+</nav>
+{% endif %}
+
+{% include "partials/affiliate_xebio.html" %}
+{% endblock %}
+

@@ -1,0 +1,8 @@
+{% if post.post_type == 'helper' %}
+<span class="badge badge-type badge-helper">助っ人</span>
+{% else %}
+<span class="opponent-tag">
+  <span class="opponent-tag-label">対戦相手</span>
+  <span class="badge badge-type badge-{{ post.post_type }}">{{ post.type_short }}</span>
+</span>
+{% endif %}

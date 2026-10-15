@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}{{ post.card_title }}{% endblock %}
+{% block affiliate_footer %}{% endblock %}
+{% block content %}
+<nav class="crumb" aria-label="パンくず">
+  <a href="{{ url_for('main.index') }}">募集一覧</a>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">詳細</span>
+</nav>
+
+{% if post.status == 'closed' %}
+<div class="alert alert-secondary alert-app" role="status">
+  {% if post.event_date < today %}
+  試合日を過ぎたため、募集は終了しています。
+  {% else %}
+  この募集は終了しています。
+  {% endif %}
+</div>
+{% endif %}
+
+<article class="detail-card">
+  <div class="post-tags">
+    {% include "partials/type_badge.html" %}
+    <span class="badge badge-status badge-{{ post.status }}">{{ post.status_label }}</span>
+  </div>
+  <h1>{{ post.card_title }}</h1>
+  <p class="detail-date">{{ post.date_label }}<span>{{ post.time_label }}</span></p>
+  <p class="detail-area">{{ post.area_label }}</p>
+
+  <dl class="specs">
+    <div>
+      <dt>募集タイプ</dt>
+      <dd>{{ post.type_label }}</dd>
+    </div>
+    <div>
+      <dt>場所</dt>
+      <dd>
+        {{ post.area_label }}{% if post.place_detail %}<br>{{ post.place_detail }}{% endif %}
+        {% if maps_url %}<br><a class="map-link" href="{{ maps_url }}" target="_blank" rel="noopener noreferrer">地図で開く</a>{% endif %}
+      </dd>
+    </div>
+    {% if post.level_label %}
+    <div>
+      <dt>レベル</dt>
+      <dd>{{ post.level_label }}</dd>
+    </div>
+    {% endif %}
+    {% if post.headcount %}
+    <div>
+      <dt>人数の目安</dt>
+      <dd>{{ post.headcount }}</dd>
+    </div>
+    {% endif %}
+    {% if post.positions %}
+    <div>
+      <dt>欲しいポジション</dt>
+      <dd>{{ post.positions }}</dd>
+    </div>
+    {% endif %}
+    {% if post.team_name %}
+    <div>
+      <dt>チーム名</dt>
+      <dd>{{ post.team_name }}</dd>
+    </div>
+    {% endif %}
+    {% if post.recruiter_name %}
+    <div>
+      <dt>募集者</dt>
+      <dd>{{ post.recruiter_name }}</dd>
+    </div>
+    {% endif %}
+    {% if post.fee %}
+    <div>
+      <dt>参加費</dt>
+      <dd>{{ post.fee }}</dd>
+    </div>
+    {% endif %}
+    {% if post.belongings %}
+    <div>
+      <dt>持ち物</dt>
+      <dd class="pre-wrap">{{ post.belongings }}</dd>
+    </div>
+    {% endif %}
+  </dl>
+
+  {% if post.notes %}
+  <div class="notes-block">
+    <h2>留意事項</h2>
+    <p>{{ post.notes }}</p>
+  </div>
+  {% endif %}
+
+  <div class="detail-actions">
+    <button type="button" class="btn btn-outline-primary js-share">この募集を共有</button>
+    <a class="btn btn-outline-primary" href="{{ url_for('main.post_ics', post_id=post.id) }}">カレンダーに追加</a>
+    <p class="field-help share-note" id="share-note" hidden>文章をコピーしました。LINEに貼れます。</p>
+    <script type="application/json" id="share-payload">{{ share|tojson }}</script>
+  </div>
+
+  <div class="detail-contact">
+    <p class="mail-mask" id="mail-mask">メールで連絡するにはボタンを押してください。</p>
+    <div class="contact-actions">
+      <button type="button" class="btn btn-primary btn-lg w-100 js-mail" data-u="{{ mail.u }}" data-h="{{ mail.h }}" data-subject="{{ subject }}">メールで連絡する</button>
+    </div>
+    <noscript><p class="field-help">メールで連絡するには JavaScript を有効にしてください。</p></noscript>
+  </div>
+</article>
+
+{% include "partials/affiliate_xebio.html" %}
+
+{% if counterparts %}
+<section class="match-block" aria-label="{{ counterpart_label }}">
+  <h2>{{ counterpart_label }}</h2>
+  <p class="field-help">同じ都道府県の募集を先に表示しています。</p>
+  <ul class="match-list">
+    {% for item in counterparts %}
+    <li><a href="{{ url_for('main.post_detail', post_id=item.id) }}"><span>{{ item.card_title }}</span><small>{{ item.type_short }} · {{ item.area_label }}{% if item.fit_label %} · {{ item.fit_label }}{% endif %}</small></a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% if same_day %}
+<section class="match-block" aria-label="この日のほかの募集">
+  <h2>この日のほかの募集</h2>
+  <ul class="match-list">
+    {% for item in same_day %}
+    <li><a href="{{ url_for('main.post_detail', post_id=item.id) }}"><span>{{ item.card_title }}</span><small>{{ item.type_short }} · {{ item.area_label }}{% if item.fit_label %} · {{ item.fit_label }}{% endif %}</small></a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% if post.event_date >= today %}
+<p class="same-day-link"><a href="{{ url_for('main.index', on=post.event_date.isoformat(), status='open', sort='date_asc') }}">{{ post.event_date.month }}/{{ post.event_date.day }}の募集をすべて見る</a></p>
+{% endif %}
+
+<section class="manage-entry">
+  <a class="manage-link" href="{{ url_for('main.manage_post', post_id=post.id) }}">
+    {% if unlocked %}編集・募集終了・削除{% else %}暗証番号で管理する{% endif %}
+  </a>
+  <p class="fine-print">
+    <a href="{{ url_for('main.report_post', post_id=post.id) }}">通報する</a>
+    · 最終更新 {{ post.updated_at.strftime('%Y/%m/%d %H:%M') }}
+    {% if post.created_at.strftime('%Y/%m/%d %H:%M') != post.updated_at.strftime('%Y/%m/%d %H:%M') %}
+    · 掲載 {{ post.created_at.strftime('%Y/%m/%d %H:%M') }}
+    {% endif %}
+  </p>
+</section>
+{% endblock %}
