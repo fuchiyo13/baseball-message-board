@@ -6,6 +6,7 @@
                 PostgreSQL の例: postgresql://user:pass@localhost:5432/baseball
   PORT          待ち受けポート。既定は 5000
   FLASK_DEBUG   1 のときデバッガを有効にする
+  SEED_SAMPLE   1 のときだけ起動時に架空のサンプル投稿を投入する（本番では未設定）
 """
 
 import os

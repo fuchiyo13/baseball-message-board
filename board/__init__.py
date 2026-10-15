@@ -79,17 +79,20 @@ def create_app(test_config=None):
 
         ensure_post_columns()
         if not app.config.get("TESTING"):
-            from .services import (
-                backfill_sample_details,
-                clear_stored_phones,
-                ensure_counterpart_sample,
-                seed_posts,
-            )
+            from .services import clear_stored_phones
 
-            seed_posts()
-            backfill_sample_details()
-            ensure_counterpart_sample()
             clear_stored_phones()
+            # 本番では空のまま起動する。デモ用サンプルが必要なときだけ SEED_SAMPLE=1
+            if os.environ.get("SEED_SAMPLE") == "1":
+                from .services import (
+                    backfill_sample_details,
+                    ensure_counterpart_sample,
+                    seed_posts,
+                )
+
+                seed_posts()
+                backfill_sample_details()
+                ensure_counterpart_sample()
         from .services import close_expired_posts
 
         close_expired_posts()
